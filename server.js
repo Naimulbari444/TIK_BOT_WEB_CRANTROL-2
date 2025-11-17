@@ -1,5 +1,4 @@
 const express = require('express');
-const fs = require('fs');
 const crypto = require('crypto');
 const https = require('https');
 
@@ -27,8 +26,8 @@ let isRunning = false;
 // Routes
 app.get('/', (req, res) => {
   res.json({ 
-    status: 'TikTok Bot Instance Running',
-    message: 'Ready to receive commands from main controller',
+    status: '🚀 ULTRA FAST TIKTOK BOT - MAX SPEED',
+    message: 'Optimized for maximum real views per minute',
     endpoints: ['GET /status', 'POST /start', 'POST /stop']
   });
 });
@@ -41,7 +40,7 @@ app.get('/status', (req, res) => {
 });
 
 app.post('/start', (req, res) => {
-  const { targetViews, videoLink, mode } = req.body;
+  const { targetViews, videoLink } = req.body;
   
   if (!videoLink) {
     return res.json({ success: false, message: 'Video link required' });
@@ -52,7 +51,6 @@ app.post('/start', (req, res) => {
     return res.json({ success: false, message: 'Invalid TikTok video link' });
   }
 
-  // Stop previous bot if running
   isRunning = false;
   
   // Reset stats
@@ -69,14 +67,14 @@ app.post('/start', (req, res) => {
     successRate: '0%'
   };
 
-  isRunning = true;
+  console.log('🚀 ULTRA FAST BOT STARTING...');
   
-  // Start bot in background
-  startBot();
+  isRunning = true;
+  startUltraFastBot();
   
   res.json({ 
     success: true, 
-    message: 'Bot started successfully!',
+    message: '🚀 ULTRA FAST BOT STARTED! Maximum speed activated',
     target: botStatus.targetViews,
     videoId: botStatus.aweme_id
   });
@@ -88,43 +86,49 @@ app.post('/stop', (req, res) => {
   res.json({ success: true, message: 'Bot stopped' });
 });
 
-// Bot functions - YAHI REAL TIKTOK VIEWS KA MAGIC HAI
-function gorgon(params, data, cookies, unix) {
-  function md5(input) {
-    return crypto.createHash('md5').update(input).digest('hex');
-  }
-  let baseStr = md5(params) + (data ? md5(data) : '0'.repeat(32)) + (cookies ? md5(cookies) : '0'.repeat(32));
-  return {
-    'X-Gorgon': '0404b0d300000000000000000000000000000000',
-    'X-Khronos': unix.toString()
-  };
+// 🚀 ULTRA FAST DEVICE GENERATION
+function generateUltraDevice() {
+  const device_id = Array.from({length: 19}, () => '0123456789'[Math.floor(Math.random() * 10)]).join('');
+  const iid = Array.from({length: 19}, () => '0123456789'[Math.floor(Math.random() * 10)]).join('');
+  const cdid = crypto.randomUUID();
+  const openudid = Array.from({length: 16}, () => '0123456789abcdef'[Math.floor(Math.random() * 16)]).join('');
+  
+  return { device_id, iid, cdid, openudid };
 }
 
-function sendRequest(did, iid, cdid, openudid, aweme_id) {
+// 🚀 ULTRA FAST REQUEST
+function sendUltraRequest(aweme_id) {
   return new Promise((resolve) => {
     if (!isRunning) {
       resolve();
       return;
     }
 
-    const params = `device_id=${did}&iid=${iid}&device_type=SM-G973N&app_name=musically_go&host_abi=armeabi-v7a&channel=googleplay&device_platform=android&version_code=160904&device_brand=samsung&os_version=9&aid=1340`;
+    const device = generateUltraDevice();
+    
+    const params = `device_id=${device.device_id}&iid=${device.iid}&device_type=SM-G973N&app_name=musically_go&host_abi=armeabi-v7a&channel=googleplay&device_platform=android&version_code=160904&device_brand=samsung&os_version=9&aid=1340`;
     const payload = `item_id=${aweme_id}&play_delta=1`;
-    const sig = gorgon(params, null, null, Math.floor(Date.now() / 1000));
+    
+    const unix = Math.floor(Date.now() / 1000);
+    const sig = {
+      'X-Gorgon': '0404b0d30000' + Array.from({length: 24}, () => '0123456789abcdef'[Math.floor(Math.random() * 16)]).join(''),
+      'X-Khronos': unix.toString()
+    };
     
     const options = {
-      hostname: 'api16-va.tiktokv.com',  // TIKTOK SERVER
+      hostname: 'api16-va.tiktokv.com',
       port: 443,
-      path: `/aweme/v1/aweme/stats/?${params}`, // TIKTOK API
+      path: `/aweme/v1/aweme/stats/?${params}`,
       method: 'POST',
       headers: {
         'cookie': 'sessionid=90c38a59d8076ea0fbc01c8643efbe47',
-        'x-gorgon': sig['X-Gorgon'],     // TIKTOK SIGNATURE
-        'x-khronos': sig['X-Khronos'],   // TIKTOK TIMESTAMP
-        'user-agent': 'okhttp/3.10.0.1', // TIKTOK USER AGENT
+        'x-gorgon': sig['X-Gorgon'],
+        'x-khronos': sig['X-Khronos'],
+        'user-agent': 'okhttp/3.10.0.1',
         'content-type': 'application/x-www-form-urlencoded',
         'content-length': Buffer.byteLength(payload)
       },
-      timeout: 3000
+      timeout: 3000  // 🚀 SHORTER TIMEOUT
     };
 
     const req = https.request(options, (res) => {
@@ -137,7 +141,7 @@ function sendRequest(did, iid, cdid, openudid, aweme_id) {
         try {
           const jsonData = JSON.parse(data);
           if (jsonData && jsonData.log_pb && jsonData.log_pb.impr_id) {
-            botStatus.success++; // ✅ SUCCESSFUL TIKTOK VIEW
+            botStatus.success++;
           } else {
             botStatus.fails++;
           }
@@ -166,35 +170,15 @@ function sendRequest(did, iid, cdid, openudid, aweme_id) {
   });
 }
 
-async function sendBatch(batchDevices, aweme_id) {
-  const promises = batchDevices.map(device => {
-    const [did, iid, cdid, openudid] = device.split(':');
-    return sendRequest(did, iid, cdid, openudid, aweme_id);
-  });
-  await Promise.all(promises);
-}
+// 🚀 ULTRA FAST BOT LOOP - MAXIMUM SPEED
+async function startUltraFastBot() {
+  console.log('🚀 ULTRA FAST BOT ACTIVATED!');
+  console.log('🎯 MAXIMUM SPEED - 50+ RPS Target');
+  console.log(`📹 Target: ${botStatus.targetViews} views | Video: ${botStatus.aweme_id}`);
 
-async function startBot() {
-  console.log('🚀 Starting TikTok Bot Instance...');
-  
-  const devices = fs.existsSync('devices.txt') ? 
-    fs.readFileSync('devices.txt', 'utf-8').split('\n').filter(Boolean) : [];
-  
-  if (devices.length === 0) {
-    console.log('❌ No devices found!');
-    botStatus.running = false;
-    isRunning = false;
-    return;
-  }
-
-  console.log(`📱 Loaded ${devices.length} devices`);
-  console.log(`🎯 Target: ${botStatus.targetViews} views`);
-  console.log(`📹 Video ID: ${botStatus.aweme_id}`);
-
-  const concurrency = 200; // MAXIMUM SPEED
   let lastReqs = 0;
+  let consecutiveSuccess = 0;
 
-  // RPS Calculator
   const statsInterval = setInterval(() => {
     botStatus.rps = ((botStatus.reqs - lastReqs) / 1).toFixed(1);
     botStatus.rpm = (botStatus.rps * 60).toFixed(1);
@@ -204,40 +188,66 @@ async function startBot() {
     const success = botStatus.success;
     botStatus.successRate = total > 0 ? ((success / total) * 100).toFixed(1) + '%' : '0%';
     
-    console.log(`📊 ${botStatus.success}/${botStatus.targetViews} | Success Rate: ${botStatus.successRate} | RPS: ${botStatus.rps}`);
+    console.log(`📊 ${botStatus.success}/${botStatus.targetViews} | Success: ${botStatus.successRate} | RPS: ${botStatus.rps} | RPM: ${botStatus.rpm}`);
     
     if (!isRunning) {
       clearInterval(statsInterval);
     }
   }, 1000);
 
-  // MAIN BOT LOOP - MAXIMUM SPEED
-  console.log('🔥 Starting maximum speed requests to TikTok...');
+  // 🚀 ULTRA FAST LOOP - MAXIMUM CONCURRENCY
+  console.log('🔥 Starting 80+ concurrent requests...');
   
   while (isRunning && botStatus.success < botStatus.targetViews) {
-    const batchDevices = [];
-    for (let i = 0; i < concurrency && i < devices.length; i++) {
-      batchDevices.push(devices[Math.floor(Math.random() * devices.length)]);
+    const successRate = parseFloat(botStatus.successRate);
+    
+    // 🚀 ADAPTIVE BATCH SIZE - Success rate ke hisab se
+    let batchSize = 80;  // 🚀 HIGH CONCURRENCY
+    let delay = 10;      // 🚀 MINIMAL DELAY
+    
+    if (successRate > 40) {
+      // Agar success rate high hai, aur speed badhao
+      batchSize = 100;
+      delay = 5;
+      consecutiveSuccess++;
+    } else if (successRate < 20) {
+      // Agar success rate low hai, thora slow karo
+      batchSize = 60;
+      delay = 20;
+      consecutiveSuccess = 0;
     }
     
-    await sendBatch(batchDevices, botStatus.aweme_id);
+    // Agar consistently high success rate hai, aur speed badhao
+    if (consecutiveSuccess > 5) {
+      batchSize = 120;
+      delay = 2;
+    }
     
-    // MINIMAL DELAY FOR MAXIMUM SPEED
-    await new Promise(resolve => setTimeout(resolve, 10));
+    const promises = [];
+    for (let i = 0; i < batchSize; i++) {
+      promises.push(sendUltraRequest(botStatus.aweme_id));
+    }
+    
+    await Promise.all(promises);
+    
+    // 🚀 MINIMAL DELAY ONLY
+    if (delay > 0) {
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
   }
 
-  // Cleanup
   isRunning = false;
   botStatus.running = false;
   clearInterval(statsInterval);
   
-  console.log('🛑 Bot instance stopped');
-  const successRate = botStatus.reqs > 0 ? ((botStatus.success / botStatus.reqs) * 100).toFixed(1) : 0;
-  console.log(`📈 Final Stats: ${botStatus.success} success, ${botStatus.fails} fails, ${successRate}% success rate`);
+  const timeTaken = ((Date.now() - botStatus.startTime) / 1000 / 60).toFixed(1);
+  console.log('🛑 Bot stopped');
+  console.log(`📈 Final: ${botStatus.success} views in ${timeTaken} minutes`);
+  console.log(`⚡ Average: ${(botStatus.success / timeTaken).toFixed(1)} views/minute`);
 }
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 TikTok Bot Instance running on port ${PORT}`);
-  console.log(`🔥 MAXIMUM SPEED MODE ACTIVATED`);
-  console.log(`🎯 Ready to send TikTok views!`);
+  console.log(`🚀 ULTRA FAST TIKTOK BOT RUNNING ON PORT ${PORT}`);
+  console.log(`🎯 TARGET: 50-100 RPS | 3000-6000 RPM`);
+  console.log(`⚡ MAXIMUM SPEED - ADAPTIVE CONCURRENCY`);
 });
